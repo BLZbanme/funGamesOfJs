@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>贪吃蛇</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+      .canvas {
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class='canvas'>
+      <canvas></canvas>
+    </div>
+    
+    <script>
+      const canvas = document.querySelector('canvas');
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width = window.innerWidth * .6;
+      const height = canvas.height = window.innerHeight *.6;
+      drawBorder();
+      const size = 20;
+
+      
+      function Snake(x, y, length, v, dir){
+        this.body = getBodyArr(x, y, length, dir);
+        this.v = v;
+        this.dir = dir;
+      }
+
+      function drawBorder(){
+        ctx.beginPath();
+        ctx.fillStyle = "black";
+        ctx.strokeRect(0, 0, width, height);
+      }
+
+      function getBodyArr(x, y, length, dir){
+        let body = [];
+        for(let i = 0; i < length; i++){
+          switch(dir){
+            case "right":
+              body.push([x - i * size, y]);
+              break;
+            case "left":
+              body.push([x + i * size, y]);
+              break;
+            case "top":
+              body.push([x, y + i * size]);
+              break;
+            case "down":
+              body.push([x, y - i * size]);
+              break;
+            default:
+              body.push([x - i * size, y]);
+              break;
+          }
+        }
+        return body;
+      }
+
+      Snake.prototype.draw = function(){
+        ctx.beginPath();
+        ctx.fillStyle = "red";
+        for(let e of this.body){
+          ctx.fillRect(e[0], e[1], size, size);
+        }
+      }
+
+      var snake = new Snake(Math.floor(width / 2), Math.floor(height / 2), 3, 1, "right");
+      snake.draw();
+    </script>
+  </body>
+</html>
