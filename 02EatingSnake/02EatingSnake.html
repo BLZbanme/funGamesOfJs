@@ -20,16 +20,16 @@
     <script>
       const canvas = document.querySelector('canvas');
       const ctx = canvas.getContext('2d');
-      const width = canvas.width = window.innerWidth * .6;
-      const height = canvas.height = window.innerHeight *.6;
+      const size = 20;
+      const width = canvas.width = Math.floor(window.innerWidth * .6 / size) * size;
+      const height = canvas.height = Math.floor(window.innerHeight * .6 / size) * size;
       drawBorder();
-      const size = 5;
 
-      
       function Snake(x, y, length, v, dir){
         this.body = getBodyArr(x, y, length, dir);
         this.v = v;
         this.dir = dir;
+        this.alive = true;
       }
 
       function drawBorder(){
@@ -91,14 +91,23 @@
               body[0][1] += size * v;
               break;
         }
+        this.alive = !isDeadSnake(body);
+      }
+
+      function isDeadSnake(body){
+        return body[0][0] < 0 || body[0][0] > width || body[0][1] < 0 || body[0][1] > height;
       }
 
       var snake = new Snake(Math.floor(width / 2), Math.floor(height / 2), 3, 1, "right");
       snake.draw();
 
       function loop(){
+        if(!snake.alive){
+          alert("you dead");
+          return;
+        }
         ctx.clearRect(0, 0, width, height);
-        ctx.strokeRect(0, 0, width, height);
+        drawBorder();
         snake.draw();
         snake.move();
         requestAnimationFrame(loop);
