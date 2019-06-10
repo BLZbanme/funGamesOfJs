@@ -101,9 +101,29 @@
         ctx.strokeRect(0, 0, width, height);
         snake.draw();
         snake.move();
+        requestAnimationFrame(loop);
       };
 
-      setInterval(loop, 300);
+      loop();
+
+       window.onkeydown = function(e){
+         switch(e.key){
+          case "ArrowLeft":
+            snake.dir = "left"
+            break;
+          case "ArrowRight":
+            snake.dir = "right"
+            break;
+          case "ArrowUp":
+            snake.dir = "top"
+            break;
+          case "ArrowDown":
+            snake.dir = "down"
+            break;
+         }
+       }
+
+      
 
       
     </script>
