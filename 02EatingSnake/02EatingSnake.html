@@ -34,7 +34,7 @@
       .button p {
         margin-top: 0;
         margin-bottom: 0;
-        background: gray;
+        background: black;
         color: white;
         border-radius: 8%;
       }
@@ -49,7 +49,7 @@
     <div class="button">
       <a id="start">start</a>
       <a id="restart">restart</a>
-      <span id="help">点击start开始游戏</span>
+      <span id="help">点击start或按任意键开始游戏</span>
       <p>
         <span>scores:</span>
         <span id="scores">0</span>
@@ -57,6 +57,7 @@
     </div>
     
     <script>
+      let sync = 1;
       let scores = 0;
       const canvas = document.querySelector('canvas');
       const div = document.querySelector('.canvas');
@@ -173,8 +174,31 @@
         scores++;
       }
 
+      Snake.prototype.changeDir = function(){
+        switch(nextDir){
+            case "left":
+              this.dir = this.dir != "right" ? "left" : "right";
+              break;
+            case "right":
+              this.dir = this.dir != "left" ? "right" : "left";
+              break;
+            case "top":
+              nextDir = "top";
+              this.dir = this.dir != "down" ? "top" : "down";
+              break;
+            case "down":
+              this.dir = this.dir != "top" ? "down" : "top";
+              break;
+          }
+      }
+
       function isDeadSnake(body){
-        return body[0][0] < 0 || body[0][0] > width || body[0][1] < 0 || body[0][1] > height;
+        return body[0][0] < 0 || body[0][0] > width - size || body[0][1] < 0 || body[0][1] > height - size || eatSelf(body);
+      }
+
+      function eatSelf(body){
+        let head = body[0];
+        return body.filter((e => e[0] == head[0] && e[1] == head[1])).length > 1;
       }
 
       function Food(x, y){
@@ -188,13 +212,16 @@
       }
 
       function creatSnake(){
-        snake = new Snake(parseInt(width / 2), parseInt(height / 2), 3, 1, "right");
+        snake = new Snake(getGoodPoint(width / 2), getGoodPoint(height / 2), 3, 1, "right");
         snake.draw();
       }
 
       function creatFood(){
-        let x = parseInt(width * Math.random() / size) * size;
-        let y = parseInt(height * Math.random() / size) * size;
+        let x , y;
+        do{
+          x = getGoodPoint(width * Math.random());
+          y = getGoodPoint(height * Math.random());
+        }while(snake.body.some(e => e[0] == x && e[1] == y));
         food = new Food(x, y);
         food.draw();
       }
@@ -205,47 +232,67 @@
       creatSnake();
       creatFood();
       
-
       function loop(){
+        let start = new Date();
         if(!snake.alive){
           alert("you dead");
           document.querySelector("#start").style.display = "none";
           document.querySelector("#restart").style.display = "inline";
-          document.querySelector("#help").innerHTML = "点击restart重新开始游戏";
+          document.querySelector("#help").innerHTML = "点击restart或按任意键重新开始游戏";
+          window.onkeydown = function(e){
+            if(e.key != "F5"){
+              restart.onclick(e);
+            }
+          }
           return;
         }
         ctx.clearRect(0, 0, width, height);
         drawBorder();
+        snake.changeDir();
         snake.draw();
         snake.move();
+        
         if(food == undefined || food == null){
           creatFood();
         }
         food.draw();
         document.querySelector("#scores").innerHTML = scores;
+        let end = new Date();
+        while(end - start < 150){
+          end = new Date();
+        }
         requestAnimationFrame(loop);
       };
       
       var start = document.querySelector("#start");
 
-      start.onclick = function(){
+      var nextDir = "right";
+      
+      start.onclick = function(e){
         window.onkeydown = function(e){
-         switch(e.key){
-          case "ArrowLeft":
-            snake.dir = snake.dir != "right" ? "left" : "right";
-            break;
-          case "ArrowRight":
-            snake.dir = snake.dir != "left" ? "right" : "left";
-            break;
-          case "ArrowUp":
-            snake.dir = snake.dir != "down" ? "top" : "down";
-            break;
-          case "ArrowDown":
-            snake.dir = snake.dir != "top" ? "down" : "top";
-            break;
-         }
+          switch(e.key){
+            case "ArrowLeft":
+              nextDir = "left";
+              break;
+            case "ArrowRight":
+              nextDir = "right";
+              break;
+            case "ArrowUp":
+              nextDir = "top";
+              break;
+            case "ArrowDown":
+              nextDir = "down";
+              break;
+          }
        }
+       window.onkeydown(e);
        loop();
+      }
+
+      window.onkeydown = function(e){
+        if(e.key != "F5"){
+          start.onclick(e);
+        }
       }
 
       var restart = document.querySelector("#restart");
@@ -257,7 +304,12 @@
         creatFood();
         document.querySelector("#start").style.display = "inline";
         document.querySelector("#restart").style.display = "none";
-        document.querySelector("#help").innerHTML = "点击start开始游戏";
+        document.querySelector("#help").innerHTML = "点击start或按任意键开始游戏";
+        window.onkeydown = function(e){
+          if(e.key != "F5"){
+            start.onclick(e);
+          }
+        }
       }
       
     </script>
