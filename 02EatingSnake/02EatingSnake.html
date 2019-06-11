@@ -4,11 +4,41 @@
     <meta charset="utf-8">
     <title>贪吃蛇</title>
     <style>
-      .canvas {
-        margin: 0 auto;
+      div {
+        margin: 10px auto;
         display: flex;
         justify-content: center;
       }
+
+      .button {
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .button a, .button span {
+        font-size: 1.5rem;
+      }
+
+      .button a {
+        border: 1px solid grey;
+        border-radius: 15%;
+        background:grey;
+        color: white;
+        cursor: pointer;
+      }
+
+      .button #restart {
+        display: none;
+      }
+
+      .button p {
+        margin-top: 0;
+        margin-bottom: 0;
+        background: gray;
+        color: white;
+        border-radius: 8%;
+      }
+
     </style>
   </head>
 
@@ -16,13 +46,28 @@
     <div class='canvas'>
       <canvas></canvas>
     </div>
+    <div class="button">
+      <a id="start">start</a>
+      <a id="restart">restart</a>
+      <span id="help">点击start开始游戏</span>
+      <p>
+        <span>scores:</span>
+        <span id="scores">0</span>
+      </p>
+    </div>
     
     <script>
+      let scores = 0;
       const canvas = document.querySelector('canvas');
+      const div = document.querySelector('.canvas');
       const ctx = canvas.getContext('2d');
       const size = 20;
-      const width = canvas.width = Math.floor(window.innerWidth * .6 / size) * size;
-      const height = canvas.height = Math.floor(window.innerHeight * .6 / size) * size;
+      const width = canvas.width = getGoodPoint(window.innerWidth * .6);
+      const height = div.style.height = canvas.height = getGoodPoint(window.innerHeight * .6);
+      div.style.width = width + "px";
+      div.style.height = height + "px";
+      const buttondiv = document.querySelector(".button");
+      buttondiv.style.width = width + "px";
       drawBorder();
 
       function Snake(x, y, length, v, dir){
@@ -30,6 +75,10 @@
         this.v = v;
         this.dir = dir;
         this.alive = true;
+      }
+
+      function getGoodPoint(length){
+        return parseInt(length / size) * size;
       }
 
       function drawBorder(){
@@ -92,48 +141,124 @@
               break;
         }
         this.alive = !isDeadSnake(body);
+        if((food != undefined || food != null) && body[0][0] == food.x && body[0][1] == food.y){
+          this.eat();
+        }
+      }
+
+      Snake.prototype.eat = function(){
+        food = null;
+        let addBody = [];
+        let body = this.body;
+        let end = body.length - 1;
+        switch(this.dir){
+          case "right":
+              addBody[0] = body[end][0] - size;
+              addBody[1] = body[end][1];
+              break;
+            case "left":
+              addBody[0] = body[end][0] + size;
+              addBody[1] = body[end][1];
+              break;
+            case "top":
+              addBody[0] = body[end][0];
+              addBody[1] = body[end][1] + size;
+              break;
+            case "down":
+              addBody[0] = body[end][0];
+              addBody[1] = body[end][1] + size;
+              break;
+        }
+        body.push(addBody);
+        scores++;
       }
 
       function isDeadSnake(body){
         return body[0][0] < 0 || body[0][0] > width || body[0][1] < 0 || body[0][1] > height;
       }
 
-      var snake = new Snake(Math.floor(width / 2), Math.floor(height / 2), 3, 1, "right");
-      snake.draw();
+      function Food(x, y){
+        this.x = x;
+        this.y = y;
+      }
+
+      Food.prototype.draw = function(){
+        ctx.fillStyle = "green";
+        ctx.fillRect(this.x, this.y, size, size);
+      }
+
+      function creatSnake(){
+        snake = new Snake(parseInt(width / 2), parseInt(height / 2), 3, 1, "right");
+        snake.draw();
+      }
+
+      function creatFood(){
+        let x = parseInt(width * Math.random() / size) * size;
+        let y = parseInt(height * Math.random() / size) * size;
+        food = new Food(x, y);
+        food.draw();
+      }
+
+      var snake;
+      var food;
+      
+      creatSnake();
+      creatFood();
+      
 
       function loop(){
         if(!snake.alive){
           alert("you dead");
+          document.querySelector("#start").style.display = "none";
+          document.querySelector("#restart").style.display = "inline";
+          document.querySelector("#help").innerHTML = "点击restart重新开始游戏";
           return;
         }
         ctx.clearRect(0, 0, width, height);
         drawBorder();
         snake.draw();
         snake.move();
+        if(food == undefined || food == null){
+          creatFood();
+        }
+        food.draw();
+        document.querySelector("#scores").innerHTML = scores;
         requestAnimationFrame(loop);
       };
+      
+      var start = document.querySelector("#start");
 
-      loop();
-
-       window.onkeydown = function(e){
+      start.onclick = function(){
+        window.onkeydown = function(e){
          switch(e.key){
           case "ArrowLeft":
-            snake.dir = "left"
+            snake.dir = snake.dir != "right" ? "left" : "right";
             break;
           case "ArrowRight":
-            snake.dir = "right"
+            snake.dir = snake.dir != "left" ? "right" : "left";
             break;
           case "ArrowUp":
-            snake.dir = "top"
+            snake.dir = snake.dir != "down" ? "top" : "down";
             break;
           case "ArrowDown":
-            snake.dir = "down"
+            snake.dir = snake.dir != "top" ? "down" : "top";
             break;
          }
        }
+       loop();
+      }
 
-      
+      var restart = document.querySelector("#restart");
 
+      restart.onclick = function(){
+        ctx.clearRect(0, 0, width, height);
+        drawBorder();
+        creatSnake();
+        creatFood();
+        document.querySelector("#start").style.display = "inline";
+        document.querySelector("#restart").style.display = "none";
+        document.querySelector("#help").innerHTML = "点击start开始游戏";
+      }
       
     </script>
   </body>
